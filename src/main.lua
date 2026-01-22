@@ -23,8 +23,6 @@ game = rom.game
 ---@module 'game-import'
 import_as_fallback(game)
 
----@module 'SGG_Modding-SJSON'
-sjson = mods["SGG_Modding-SJSON"]
 ---@module 'SGG_Modding-ModUtil'
 modutil = mods["SGG_Modding-ModUtil"]
 

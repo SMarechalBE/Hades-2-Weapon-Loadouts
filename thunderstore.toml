@@ -15,9 +15,8 @@ Hell2Modding-Hell2Modding = "1.0.88"
 LuaENVY-ENVY = "1.2.0"
 SGG_Modding-Chalk = "2.1.1"
 SGG_Modding-ReLoad = "1.0.2"
-SGG_Modding-SJSON = "1.0.0"
 SGG_Modding-ModUtil = "4.0.1"
-SMarBe-Random_Starting_Keepsake = "0.1.2"
+SMarBe-Random_Starting_Keepsake = "1.0.0"
 
 
 [build]
