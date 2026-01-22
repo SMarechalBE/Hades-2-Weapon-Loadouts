@@ -2,15 +2,10 @@
 
 This mod gives you the ability to setup arcana/keepsake/pinned boons loadouts for each weapons so you don't have to manually tinker those every time you use a different aspect.
 
-The data saved inside loadouts would consist of: 
-- Arcana page
-- Pinned boons
-- Keepsake
-- Pact of punishments
+
 
 ## Planned features
-- Save/restore loadout behaviour.
-- Dedicated buttons inside aspect page
+- Showing saved loadout for each aspect instead of rotating model. With cycling button like TraitTray currently does.
 - Dedicated buttons next to weapons in hub room, similar to pets.  
 
 ## Extra features
