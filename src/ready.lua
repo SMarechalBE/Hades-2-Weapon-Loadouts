@@ -4,6 +4,16 @@
 
 local WeaponUpgradeScreenComponents = {
 
+	LoadoutBox = {
+		AnimationName = "GUI\\HUD\\TraitTrayBacking_NoHeader",
+		X = 202,
+		Y = 320,
+		Scale = 0.43,
+		Alpha = 0.0,
+		-- AlphaTarget = 1.0,
+		-- AlphaTargetDuration = 0.4,
+	},
+
 	ActionBar = {
 		ChildrenOrder = {
 			"CloseButton",
@@ -11,7 +21,6 @@ local WeaponUpgradeScreenComponents = {
 			"EmptyButton",
 			"RestoreLoadoutButton",
 			"SaveLoadoutButton",
-			-- "LoadoutLabel",
 		},
 		Children = {
 
@@ -57,20 +66,20 @@ local WeaponUpgradeScreenComponents = {
 		AutoAlignJustification = "Left",
 
 		ChildrenOrder = {
-			-- "NextTraitShow",
 			"PreviousTraitShow",
+			"NextTraitShow",
 		},
 
 		Children = {
-			-- NextTraitShow = {
-			-- 	Graphic = "ContextualActionButton",
-			-- 	Data = {
-			-- 		OnPressedFunctionName = _PLUGIN.guid .. "." .. "NextTraitShowButton",
-			-- 		ControlHotkeys = { "NextLayout" },
-			-- 	},
-			-- 	Text = "{NL} NEXT SET",
-			-- 	TextArgs = UIData.ContextualButtonFormatLeft,
-			-- },
+			NextTraitShow = {
+				Graphic = "ContextualActionButton",
+				Data = {
+					OnPressedFunctionName = _PLUGIN.guid .. "." .. "NextTraitShowButton",
+					ControlHotkeys = { "NextLayout" },
+				},
+				Text = "{NL} NEXT SET",
+				TextArgs = UIData.ContextualButtonFormatLeft,
+			},
 
 			PreviousTraitShow = {
 				Graphic = "ContextualActionButton",
@@ -78,7 +87,7 @@ local WeaponUpgradeScreenComponents = {
 					OnPressedFunctionName = _PLUGIN.guid .. "." .. "PreviousTraitShowButton",
 					ControlHotkeys = { "PrevLayout" },
 				},
-				Text = "{PL} DISPLAY TRAITS",
+				Text = "{PL} PREVIOUS SET",
 				TextArgs = UIData.ContextualButtonFormatLeft,
 			},
 		},
@@ -104,99 +113,96 @@ function mod.RestoreLoadoutButton(screen, button)
 	RestoreLoadout(aspect)
 end
 
-function mod.WeaponLoadoutScreenCloseTraitTray(screen, args)
-	screen = args.Screen or screen
-	local selectedIndex = args.Index or 1
+local AspectLoadout = {
+	Categories = {
+		Order = {
+			"DefaultModel",
+			"Arcanas",
+			"Keepsakes",
+			"Familiars",
+			"Boons",
+		},
 
-	local WeaponLoadoutScreenComponents = screen.Components
+		DefaultModel = {
+			StartFunction = function(...)
+				DefaultModelStartFunction(...)
+			end,
+			EndFunction = function(...)
+				DefaultModelEndFunction(...)
+			end,
+		},
 
-	for index = 1, 4 do
-		if WeaponLoadoutScreenComponents["PurchaseButton" .. index] then
-			game.SetAlpha({
-				Id = WeaponLoadoutScreenComponents["PurchaseButton" .. index].Id,
-				Fraction = 1.0,
-				Duration = 0.2,
-			})
-		end
-	end
+		Arcanas = {
+			StartFunction = function(...)
+				ArcanasStartFunction(...)
+			end,
+			EndFunction = function(...)
+				ArcanasEndFunction(...)
+			end,
+		},
 
-	game.TeleportCursor({
-		DestinationId = WeaponLoadoutScreenComponents["PurchaseButton" .. selectedIndex].Id,
-		ForceUseCheck = true,
-	})
+		Keepsakes = {
+			StartFunction = function(...)
+				KeepsakesStartFunction(...)
+			end,
+			EndFunction = function(...)
+				KeepsakesEndFunction(...)
+			end,
+		},
 
-	if WeaponLoadoutScreenComponents.SelectButton then
-		game.SetAlpha({ Id = WeaponLoadoutScreenComponents.SelectButton.Id, Fraction = 1.0, Duration = 0.2 })
-	end
+		Familiars = {
+			StartFunction = function(...)
+				FamiliarsStartFunction(...)
+			end,
+			EndFunction = function(...)
+				FamiliarsEndFunction(...)
+			end,
+		},
 
-	if WeaponLoadoutScreenComponents.CloseButton then
-		game.SetAlpha({ Id = WeaponLoadoutScreenComponents.CloseButton.Id, Fraction = 1.0, Duration = 0.2 })
-	end
+		PinnedBoons = {
+			StartFunction = function(...)
+				PinnedBoonsStartFunction(...)
+			end,
+			EndFunction = function(...)
+				PinnedBoonsEndFunction(...)
+			end,
+		},
+	},
+	CurrentIndex = 1,
+}
 
-	if WeaponLoadoutScreenComponents.SaveLoadoutButton then
-		game.SetAlpha({ Id = WeaponLoadoutScreenComponents.SaveLoadoutButton.Id, Fraction = 1.0, Duration = 0.2 })
-	end
-
-	if WeaponLoadoutScreenComponents.RestoreLoadoutButton then
-		game.SetAlpha({ Id = WeaponLoadoutScreenComponents.RestoreLoadoutButton.Id, Fraction = 1.0, Duration = 0.2 })
-	end
-
-	-- if WeaponLoadoutScreenComponents.NextTraitShow then
-	-- 	game.SetAlpha({ Id = WeaponLoadoutScreenComponents.NextTraitShow.Id, Fraction = 1.0, Duration = 0.2 })
-	-- end
-
-	if WeaponLoadoutScreenComponents.PreviousTraitShow then
-		game.SetAlpha({ Id = WeaponLoadoutScreenComponents.PreviousTraitShow.Id, Fraction = 1.0, Duration = 0.2 })
-	end
-
-	game.HideCombatUI(screen.Name)
+local function GetCurrentCategory()
+	return AspectLoadout.Categories.Order[AspectLoadout.CurrentIndex]
 end
 
---
--- Leaving this here for now as I feel it could be optimized
---
--- function mod.NextTraitShowButton(screen, button)
--- 	modutil.mod.Print("Cycle to next TraitTray screen")
--- end
+local function CallCurrentCategoryStartFunction(screen, aspectName)
+	local category = AspectLoadout.Categories[GetCurrentCategory()]
+	if category and category.StartFunction then
+		category.StartFunction(screen, aspectName)
+	end
+end
+
+local function CallCurrentCategoryEndFunction(screen, aspectName)
+	local category = AspectLoadout.Categories[GetCurrentCategory()]
+	if category and category.EndFunction then
+		category.EndFunction(screen, aspectName)
+	end
+end
+
+function mod.NextTraitShowButton(screen, button)
+	local aspectName = screen.ClipboardText
+	CallCurrentCategoryEndFunction(screen, aspectName)
+	local idx = AspectLoadout.CurrentIndex
+	AspectLoadout.CurrentIndex = idx == #AspectLoadout.Categories.Order and 1 or idx + 1
+	CallCurrentCategoryStartFunction(screen, aspectName)
+end
 
 function mod.PreviousTraitShowButton(screen, button)
-	for index = 1, 4 do
-		if screen.Components["PurchaseButton" .. index] then
-			game.SetAlpha({ Id = screen.Components["PurchaseButton" .. index].Id, Fraction = 0.0, Duration = 0.2 })
-		end
-	end
-
-	if screen.Components.SelectButton then
-		game.SetAlpha({ Id = screen.Components.SelectButton.Id, Fraction = 0.0, Duration = 0.2 })
-	end
-
-	if screen.Components.CloseButton then
-		game.SetAlpha({ Id = screen.Components.CloseButton.Id, Fraction = 0.0, Duration = 0.2 })
-	end
-
-	if screen.Components.SaveLoadoutButton then
-		game.SetAlpha({ Id = screen.Components.SaveLoadoutButton.Id, Fraction = 0.0, Duration = 0.2 })
-	end
-
-	if screen.Components.RestoreLoadoutButton then
-		game.SetAlpha({ Id = screen.Components.RestoreLoadoutButton.Id, Fraction = 0.0, Duration = 0.2 })
-	end
-
-	-- if screen.Components.NextTraitShow then
-	-- 	game.SetAlpha({ Id = screen.Components.NextTraitShow.Id, Fraction = 0.0, Duration = 0.2 })
-	-- end
-
-	if screen.Components.PreviousTraitShow then
-		game.SetAlpha({ Id = screen.Components.PreviousTraitShow.Id, Fraction = 0.0, Duration = 0.2 })
-	end
-
-	game.ShowCombatUI(screen.Name)
-
-	game.ShowTraitTrayScreen({
-		CloseFunctionName = _PLUGIN.guid .. "." .. "WeaponLoadoutScreenCloseTraitTray",
-		CloseFunctionArgs = { Screen = screen, Index = 2 },
-		HideInfoButton = true,
-	})
+	local aspectName = screen.ClipboardText
+	CallCurrentCategoryEndFunction(screen, aspectName)
+	local idx = AspectLoadout.CurrentIndex
+	AspectLoadout.CurrentIndex = idx == 1 and #AspectLoadout.Categories.Order or idx - 1
+	CallCurrentCategoryStartFunction(screen, aspectName)
 end
 
 modutil.mod.Path.Wrap("MouseOverWeaponUpgrade", function(base, button)
@@ -224,6 +230,8 @@ modutil.mod.Path.Wrap("MouseOverWeaponUpgrade", function(base, button)
 		game.UseableOff({ Id = componentId })
 	end
 
+	CallCurrentCategoryStartFunction(screen, screen.ClipboardText)
+
 	return returnValue
 end)
 
@@ -246,13 +254,80 @@ modutil.mod.Path.Wrap("MouseOffWeaponUpgrade", function(base, button)
 	game.SetAlpha({ Id = componentId, Fraction = 0, Duration = 0.1 })
 	game.UseableOff({ Id = componentId })
 
+	CallCurrentCategoryEndFunction(screen, screen.ClipboardText)
+
 	return returnValue
 end)
 
-modutil.mod.Path.Wrap("TraitTrayScreenClose", function(base, screen, button, args)
-	if screen and screen.CloseFunctionName == _PLUGIN.guid .. "." .. "WeaponLoadoutScreenCloseTraitTray" then
-		args = { IgnoreHUDShow = true }
+modutil.mod.Path.Override("SelectWeaponUpgrade", function(screen, weaponName, traitData)
+	if GameState.LastWeaponUpgradeName[weaponName] == traitData.Name then
+		-- Already equipped
+		return
 	end
 
-	return base(screen, button, args)
+	if GetCurrentCategory() == "DefaultModel" then
+		local weaponUpgradeSwitchFx = CreateScreenObstacle({
+			Name = "BlankObstacle",
+			X = 200 + ScreenCenterNativeOffsetX,
+			Y = 360 + ScreenCenterNativeOffsetY,
+			Group = "Combat_Menu_Overlay_Additive",
+		})
+		SetAnimation({ Name = "WeaponUpgradeSwitchFx", DestinationId = weaponUpgradeSwitchFx })
+		DestroyOnDelay({ Id = weaponUpgradeSwitchFx, 3 })
+	end
+
+	local prevTraitData = GetHeroTrait(GameState.LastWeaponUpgradeName[weaponName])
+	if prevTraitData and prevTraitData.LinkedSpell then
+		UnequipLinkedSpell(prevTraitData)
+		local traitName = SpellData[prevTraitData.LinkedSpell].TraitName
+		local spellTrait = GetHeroTrait(traitName)
+		RemoveTrait(CurrentRun.Hero, spellTrait.Name)
+	end
+	PlaySound({ Name = traitData.EquipSound or "/Leftovers/SFX/PerfectTiming" })
+
+	if GameState.LastWeaponUpgradeName[weaponName] ~= nil then
+		-- Unequip previous trait
+		if prevTraitData.OnUnequipFunctionName then
+			thread(CallFunctionName, prevTraitData.OnUnequipFunctionName)
+		end
+		if prevTraitData.StopVfxOnUnequip then
+			StopAnimation({ Name = prevTraitData.StopVfxOnUnequip, DestinationId = CurrentRun.Hero.ObjectId })
+		end
+		RemoveTrait(CurrentRun.Hero, GameState.LastWeaponUpgradeName[weaponName])
+	end
+
+	UnequipWeapon({ DestinationId = CurrentRun.Hero.ObjectId, Name = weaponName, UnloadPackages = false })
+	MapState.EquippedWeapons[weaponName] = nil
+
+	local weaponSetNames = WeaponSets.HeroWeaponSets[weaponName]
+	if weaponSetNames ~= nil then
+		for k, linkedWeaponName in ipairs(weaponSetNames) do
+			UnequipWeapon({ DestinationId = CurrentRun.Hero.ObjectId, Name = linkedWeaponName, UnloadPackages = false })
+			MapState.EquippedWeapons[linkedWeaponName] = nil
+		end
+	end
+
+	EquipWeapon({ DestinationId = CurrentRun.Hero.ObjectId, Name = weaponName })
+	MapState.EquippedWeapons[weaponName] = true
+	if weaponSetNames ~= nil then
+		for k, linkedWeaponName in ipairs(weaponSetNames) do
+			EquipWeapon({ DestinationId = CurrentRun.Hero.ObjectId, Name = linkedWeaponName })
+			MapState.EquippedWeapons[linkedWeaponName] = true
+		end
+	end
+	-- Weapon upgrade code blows away all property changes related to the weapon
+	OrderAndApplyPropertyChanges(ToLookup(weaponSetNames))
+
+	GameState.LastWeaponUpgradeName[weaponName] = traitData.Name
+
+	-- Equip new trait
+	EquipWeaponUpgrade(existingHero, { SkipTraitHighlight = true, SkipUIUpdate = true })
+	thread(PlayVoiceLines, GlobalVoiceLines.SwitchedWeaponUpgradeVoiceLines, true)
+
+	screen.AspectChanged = true
+end)
+
+modutil.mod.Path.Wrap("OpenWeaponUpgradeScreen", function(base, ...)
+	AspectLoadout.CurrentIndex = 1
+	return base(...)
 end)
