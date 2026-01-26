@@ -5,7 +5,7 @@ schemaVersion = "0.0.1"
 [package]
 namespace = "SMarBe"
 name = "Weapon_Loadouts"
-versionNumber = "0.0.1"
+versionNumber = "1.0.0"
 description = "Create and save specific loadouts for each weapons."
 websiteUrl = "https://github.com/SMarechalBE/Hades-2-Weapon-Loadouts"
 containsNsfwContent = false
