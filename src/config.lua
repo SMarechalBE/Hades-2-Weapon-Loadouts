@@ -16,7 +16,7 @@ local function MakeLoadoutDescription()
 		Keepsakes = "List of keepsakes to set as favorite, separated by ','",
 		Familiar = "Familiar to use",
 		Arcanas = "List of arcanas to use, separated by ','",
-		FearOaths = "List of fear oaths use, separated by ','",
+		FearOaths = "List of fear oaths use, separated by ',' (not implemented yet!)",
 	}
 end
 
@@ -53,7 +53,7 @@ local config = {
 
 local configDesc = {
 	enabled = "Enable the mod",
-	AutoRestoreLoadoutEnabled = "Enable restoring automatically the loadout when picking the weapon",
+	AutoRestoreLoadoutEnabled = "Enable restoring automatically the loadout when picking the weapon (not implemented yet!)",
 	Loadout = {
 		BaseStaffAspect = MakeLoadoutDescription(),
 		StaffClearCastAspect = MakeLoadoutDescription(),
