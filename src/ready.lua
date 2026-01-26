@@ -118,9 +118,7 @@ local AspectLoadout = {
 		Order = {
 			"DefaultModel",
 			"Arcanas",
-			"Keepsakes",
-			"Familiars",
-			"Boons",
+			"Traits",
 		},
 
 		DefaultModel = {
@@ -141,30 +139,12 @@ local AspectLoadout = {
 			end,
 		},
 
-		Keepsakes = {
+		Traits = {
 			StartFunction = function(...)
-				KeepsakesStartFunction(...)
+				TraitsStartFunction(...)
 			end,
 			EndFunction = function(...)
-				KeepsakesEndFunction(...)
-			end,
-		},
-
-		Familiars = {
-			StartFunction = function(...)
-				FamiliarsStartFunction(...)
-			end,
-			EndFunction = function(...)
-				FamiliarsEndFunction(...)
-			end,
-		},
-
-		PinnedBoons = {
-			StartFunction = function(...)
-				PinnedBoonsStartFunction(...)
-			end,
-			EndFunction = function(...)
-				PinnedBoonsEndFunction(...)
+				TraitsEndFunction(...)
 			end,
 		},
 	},

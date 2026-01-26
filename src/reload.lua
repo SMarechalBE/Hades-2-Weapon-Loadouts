@@ -36,6 +36,13 @@ local function DisableLoadoutBox(screen)
 	})
 end
 
+local function DestroyIds(ids)
+	modutil.mod.Print(tostring(type(ids)))
+	if ids and type(ids) == "table" then
+		game.Destroy({ Ids = ids })
+	end
+end
+
 --#region Weapon
 
 ---Get current Weapon
@@ -73,8 +80,14 @@ end
 
 --#region Pinned Boons
 
----Load pinned boons
----@param boonsStr string
+local function GetAspectPinnedBoons(aspectName)
+	if not IsLoadoutSaved(aspectName) then
+		return {}
+	end
+
+	return ConcatStrToTable(config.Loadout[aspectName].Boons)
+end
+
 local function LoadPinnedBoons(boonsStr)
 	if not AssertGameState() then
 		return
@@ -124,18 +137,11 @@ local function PrintPinnedBoons(boons)
 	modutil.mod.Print("  Pinned Boons: " .. boons)
 end
 
-function PinnedBoonsStartFunction(screen, aspectName)
-	modutil.mod.Print("PinnedBoonsStartFunction: WIP")
-end
-function PinnedBoonsEndFunction(screen, aspectName)
-	modutil.mod.Print("PinnedBoonsEndFunction: WIP")
-end
-
 --#endregion Pinned Boons
 
 --#region Keepsakes
 local function GetAspectKeepsakes(aspectName)
-	if not config.Loadout[aspectName].Saved then
+	if not IsLoadoutSaved(aspectName) then
 		return {}
 	end
 
@@ -184,67 +190,17 @@ local function PrintKeepsakes(keepsakes)
 	modutil.mod.Print("  Keepsakes: " .. keepsakes)
 end
 
-local function CreateKeepsakeIcons(screen, aspectName)
-	screen.KeepsakeIconIds = {}
-
-	local traitSpacingX = 80
-	local traitSpacingY = 120
-	local traitStartX = 40
-	local traitStartY = 80
-
-	local iconScale = 0.5
-
-	local keepsakes = GetAspectKeepsakes(aspectName)
-
-	local yOffset = traitStartY
-	for r = 1, 5 do
-		local xOffset = traitStartX
-		for c = 1, 5 do
-			local traitName = keepsakes[((r - 1) * 5) + c]
-			local traitData = traitName and game.TraitData[traitName]
-			if not traitData then
-				return
-			end
-			local traitIcon = game.CreateScreenComponent({
-				Name = "TraitTrayIconButton",
-				X = xOffset,
-				Y = yOffset,
-				Group = screen.ComponentData.DefaultGroup,
-				Scale = iconScale,
-				Animation = game.GetTraitIcon(traitData),
-				Alpha = 1.0,
-			})
-
-			table.insert(screen.Components, traitIcon)
-			table.insert(screen.KeepsakeIconIds, traitIcon.Id)
-
-			xOffset = xOffset + traitSpacingX
-		end
-		yOffset = yOffset + traitSpacingY
-	end
-end
-local function DestroyKeepsakeIcons(screen)
-	if screen.KeepsakeIconIds and type(screen.KeepsakeIconIds) == "table" then
-		game.Destroy({ Ids = screen.KeepsakeIconIds })
-	end
-	screen.KeepsakeIconIds = {}
-end
-
-function KeepsakesStartFunction(screen, aspectName)
-	modutil.mod.Print("KeepsakesStartFunction: WIP")
-	EnableLoadoutBox(screen)
-	CreateKeepsakeIcons(screen, screen.ClipboardText)
-end
-
-function KeepsakesEndFunction(screen, aspectName)
-	modutil.mod.Print("KeepsakesEndFunction: WIP")
-	DisableLoadoutBox(screen)
-	DestroyKeepsakeIcons(screen)
-end
-
 --#endregion Keepsakes
 
 --#region Familiar
+local function GetAspectFamiliars(aspectName)
+	if not IsLoadoutSaved(aspectName) then
+		return {}
+	end
+	-- Familiar may be a table like keepsakes in the future
+	return { config.Loadout[aspectName].Familiar }
+end
+
 local function GetFamiliar()
 	if not AssertGameState() then
 		return
@@ -268,14 +224,6 @@ local function PrintFamiliar(familiarName)
 	modutil.mod.Print("  Familiar: " .. familiarName)
 end
 
-function FamiliarsStartFunction(screen, aspectName)
-	modutil.mod.Print("FamiliarsStartFunction: WIP")
-end
-
-function FamiliarsEndFunction(screen, aspectName)
-	modutil.mod.Print("FamiliarsEndFunction: WIP")
-end
-
 --#endregion Familiar
 
 --#region Arcanas
@@ -295,7 +243,7 @@ local function GetArcanas()
 end
 
 local function GetAspectArcanas(aspectName)
-	if not config.Loadout[aspectName].Saved then
+	if not IsLoadoutSaved(aspectName) then
 		return {}
 	end
 
@@ -423,7 +371,7 @@ end
 function ArcanasStartFunction(screen, aspectName)
 	EnableLoadoutBox(screen)
 	EnableArcanaIcons(screen)
-	LinkArcanaFrames(screen, screen.ClipboardText)
+	LinkArcanaFrames(screen, aspectName)
 end
 
 function ArcanasEndFunction(screen, aspectName)
@@ -514,4 +462,94 @@ function DefaultModelEndFunction(screen, aspectName)
 		Fraction = 0.0,
 		Duration = 0.0,
 	})
+end
+
+local function CreateTraitLayout(screen, traitList, maxRow, startY)
+	screen.TraitIconIds = screen.TraitIconIds or {}
+
+	local traitSpacingX = 80
+	local traitSpacingY = 80
+	local traitStartX = 43
+	startY = startY or 50
+	maxRow = maxRow or 8
+
+	local iconScale = 0.45
+
+	local yOffset = startY
+	for r = 1, maxRow do
+		local xOffset = traitStartX
+		for c = 1, 5 do
+			local traitName = traitList[((r - 1) * 5) + c]
+			local traitData = traitName and game.TraitData[traitName]
+			if not traitData then
+				local familiarData = game.FamiliarData[traitName]
+				local familiarTraitName = familiarData and familiarData.TraitNames and familiarData.TraitNames[1]
+				traitData = familiarTraitName and game.TraitData[familiarTraitName]
+			end
+			if not traitData then
+				if c == 1 then
+					return yOffset, (maxRow - (r - 1))
+				else
+					return (yOffset + traitSpacingY), (maxRow - r)
+				end
+			end
+			local traitIcon = game.CreateScreenComponent({
+				Name = "TraitTrayIconButton",
+				X = xOffset,
+				Y = yOffset,
+				Group = screen.ComponentData.DefaultGroup,
+				Scale = iconScale,
+				Animation = game.GetTraitIcon(traitData),
+				Alpha = 1.0,
+			})
+
+			table.insert(screen.Components, traitIcon)
+			table.insert(screen.TraitIconIds, traitIcon.Id)
+
+			local traitFrame = game.GetTraitFrame(traitData)
+			if traitFrame then
+				local traitFrameId = game.CreateScreenObstacle({
+					Name = "BlankObstacle",
+					Group = screen.ComponentData.DefaultGroup,
+					Scale = iconScale,
+					Alpha = 1.0,
+					Animation = traitFrame,
+				})
+				game.Attach({ Id = traitFrameId, DestinationId = traitIcon.Id })
+				table.insert(screen.TraitIconIds, traitFrameId)
+			end
+
+			xOffset = xOffset + traitSpacingX
+		end
+		yOffset = yOffset + traitSpacingY
+	end
+
+	return (yOffset + traitSpacingY), 0
+end
+
+local function CreateTraitIcons(screen, aspectName)
+	-- Familiars
+	local yOffset, maxRow = CreateTraitLayout(screen, GetAspectFamiliars(aspectName))
+
+	--Keepsakes
+	yOffset, maxRow = CreateTraitLayout(screen, GetAspectKeepsakes(aspectName), maxRow, yOffset)
+
+	--PinnedBoons
+	CreateTraitLayout(screen, GetAspectPinnedBoons(aspectName), maxRow, yOffset)
+
+	screen.TraitIconIds = screen.TraitIconIds or {}
+	for _, v in ipairs(screen.TraitIconIds) do
+		modutil.mod.Print(v)
+	end
+end
+
+function TraitsStartFunction(screen, aspectName)
+	EnableLoadoutBox(screen)
+	CreateTraitIcons(screen, aspectName)
+end
+
+function TraitsEndFunction(screen, aspectName)
+	DisableLoadoutBox(screen)
+	DestroyIds(screen.TraitIconIds)
+	screen.TraitIconIds = {}
 end
