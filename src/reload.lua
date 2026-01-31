@@ -536,11 +536,6 @@ local function CreateTraitIcons(screen, aspectName)
 
 	--PinnedBoons
 	CreateTraitLayout(screen, GetAspectPinnedBoons(aspectName), maxRow, yOffset)
-
-	screen.TraitIconIds = screen.TraitIconIds or {}
-	for _, v in ipairs(screen.TraitIconIds) do
-		modutil.mod.Print(v)
-	end
 end
 
 function TraitsStartFunction(screen, aspectName)
