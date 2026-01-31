@@ -261,7 +261,7 @@ local function LoadArcanas(arcanasStr)
 	end
 
 	-- Equip specified arcanas (if unlocked)
-	local arcanas = ArcanasStrToTable(arcanasStr)
+	local arcanas = ConcatStrToTable(arcanasStr)
 	for _, arcana in pairs(arcanas) do
 		local metaUpgradeState = game.GameState.MetaUpgradeState[arcana]
 		if metaUpgradeState and metaUpgradeState.Unlocked then
