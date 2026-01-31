@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-01-31
+
 ### Fixed
 
 - Bug causing crashes when trying to restore a saved loadout
@@ -23,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First version of the mod!
 
-[unreleased]: https://github.com/SMarechalBE/Hades-2-Weapon-Loadouts/compare/1.0.0...HEAD
+[unreleased]: https://github.com/SMarechalBE/Hades-2-Weapon-Loadouts/compare/1.0.1...HEAD
+[1.0.1]: https://github.com/SMarechalBE/Hades-2-Weapon-Loadouts/compare/1.0.0...1.0.1
 [1.0.0]: https://github.com/SMarechalBE/Hades-2-Weapon-Loadouts/compare/0.0.1...1.0.0
 [0.0.1]: https://github.com/SMarechalBE/Hades-2-Weapon-Loadouts/compare/fdc73902c6a804b3153d6073bb4f33c79cba15a2...0.0.1
