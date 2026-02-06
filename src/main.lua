@@ -46,10 +46,8 @@ local function on_ready()
 	end
 	mod = modutil.mod.Mod.Register(_PLUGIN.guid)
 
-	local keepsakesConfig = startingKeepsakes.config
-	if keepsakesConfig then
-		keepsakesConfig.randomizeAtRunStart = true
-		keepsakesConfig.alwaysRandomizeAtRunStart = true
+	if startingKeepsakes then
+		startingKeepsakes.EnableAlwaysRandomizeAtRunStart()
 	else
 		modutil.mod.Print("Error: couldn't import starting keepsakes mod's config")
 	end

@@ -149,40 +149,21 @@ local function GetAspectKeepsakes(aspectName)
 end
 
 local function GetKeepsakes()
-	local keepsakesLookup = startingKeepsakes.config and startingKeepsakes.config.keepsakes
-	if not keepsakesLookup then
-		modutil.mod.Print("Error: couldn't load keepsakes config")
-		return {}
+	local keepsakesStr = startingKeepsakes and startingKeepsakes.GetKeepsakes()
+	if not keepsakesStr then
+		modutil.mod.Print("Error: couldn't load starting keepsakes")
+		return ""
 	end
 
-	local keepsakes = {}
-	for keepsake, enabled in pairs(keepsakesLookup) do
-		if enabled then
-			table.insert(keepsakes, keepsake)
-		end
-	end
-	return table.concat(keepsakes, ",")
+	return keepsakesStr
 end
 
 local function LoadKeepsakes(keepsakesStr)
-	local keepsakesLookup = startingKeepsakes.config and startingKeepsakes.config.keepsakes
-	if not keepsakesLookup then
-		modutil.mod.Print("Error: couldn't load keepsakes config")
-		return
+	if not startingKeepsakes then
+		modutil.mod.Print("Error: could not load keepsakes config")
 	end
 
-	for keepsake, _ in pairs(keepsakesLookup) do
-		keepsakesLookup[keepsake] = false
-	end
-
-	local keepsakes = {}
-	keepsakesStr:gsub("%a+", function(keepsake)
-		table.insert(keepsakes, keepsake)
-	end)
-
-	for _, keepsake in pairs(keepsakes) do
-		keepsakesLookup[keepsake] = true
-	end
+	startingKeepsakes.SetKeepsakes(keepsakesStr)
 end
 
 local function PrintKeepsakes(keepsakes)
